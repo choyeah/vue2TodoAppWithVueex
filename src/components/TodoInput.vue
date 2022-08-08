@@ -4,27 +4,45 @@
     <span class="addContainer" v-on:click="addTodo">
       <i class="fas fa-plus addBtn"></i>
     </span>
+
+    <!-- use the modal component, pass in the prop -->
+    <CommonModal v-if="showModal" @close="showModal = false">
+      <!-- <template #header>
+        <h3>custom header</h3>
+      </template> -->
+      <h3 slot="header">
+        경고
+        <i class="closeModalBtn fas fa-times" @click="showModal = false"></i>
+      </h3>
+      <div slot="body">아무것도 입력하지 않으셨습니다</div>
+    </CommonModal>
   </div>
 </template>
 
 <script>
+import CommonModal from "./common/CommonModal.vue";
 export default {
-  data: function () {
+  components: {
+    CommonModal,
+  },
+  data: () => {
     return {
       newTodoItem: "",
+      showModal: false,
     };
   },
   methods: {
-    addTodo: function () {
+    addTodo() {
       if (this.newTodoItem !== "") {
-        let obj = { complete: false, item: this.newTodoItem };
-        localStorage.setItem(this.newTodoItem, JSON.stringify(obj));
+        //this.$emit("addTodoItem", this.newTodoItem);
+        this.$store.commit("addOneItem", this.newTodoItem);
         this.clearInput();
       } else {
+        this.showModal = !this.showModal;
         console.log("");
       }
     },
-    clearInput: function () {
+    clearInput() {
       this.newTodoItem = "";
     },
   },
@@ -55,5 +73,8 @@ input:focus {
 .addBtn {
   color: white;
   vertical-align: middle;
+}
+.closeModalBtn {
+  color: #42b983;
 }
 </style>

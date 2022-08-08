@@ -1,54 +1,64 @@
 <template>
   <div>
-    <ul>
+    <TransitionGroup
+      tag="ul"
+      :css="false"
+      @before-enter="onBeforeEnter"
+      @enter="onEnter"
+      @leave="onLeave"
+    >
       <li
-        v-for="(todoItem, index) in todoItems"
+        v-for="(todoItem, index) in storedTodoItems"
         v-bind:key="todoItem.item"
         class="shadow"
       >
         <i
           class="fas fa-check checkBtn"
           v-bind:class="{ checkBtnCompleted: todoItem.completed }"
-          v-on:click="toggleComplete(todoItem)"
+          v-on:click="toggleComplete({ todoItem, index })"
         ></i>
         <span v-bind:class="{ textCompleted: todoItem.completed }">
           {{ todoItem.item }}
         </span>
-        <span class="removeBtn" v-on:click="removeTodo(todoItem, index)">
+        <span class="removeBtn" v-on:click="removeTodo({ todoItem, index })">
           <i class="fas fa-trash-alt"></i>
         </span>
       </li>
-    </ul>
+    </TransitionGroup>
   </div>
 </template>
 
 <script>
+import gsap from "gsap";
+import { mapGetters, mapMutations } from "vuex";
 export default {
-  data: function () {
-    return {
-      todoItems: [],
-    };
-  },
-  created: function () {
-    if (localStorage.length > 0) {
-      for (let i = 0; i < localStorage.length; i++) {
-        this.todoItems.push(
-          JSON.parse(localStorage.getItem(localStorage.key(i)))
-        );
-      }
-    }
+  computed: {
+    ...mapGetters(["storedTodoItems"]),
   },
   methods: {
-    removeTodo: function (todoItem, index) {
-      //console.log(todoItem, index);
-      localStorage.removeItem(todoItem);
-      this.todoItems.splice(index, 1);
+    ...mapMutations({
+      removeTodo: "removeOneItem",
+      toggleComplete: "toggleOneItem",
+    }),
+    onBeforeEnter(el) {
+      el.style.opacity = 0;
+      el.style.height = 0;
     },
-    toggleComplete: function (todoItem) {
-      //console.log(todoItem);
-      todoItem.completed = !todoItem.completed;
-      localStorage.removeItem(todoItem.item);
-      localStorage.setItem(todoItem.item, JSON.stringify(todoItem));
+    onEnter(el, done) {
+      gsap.to(el, {
+        opacity: 1,
+        height: "1.6em",
+        delay: el.dataset.index * 0.15,
+        onComplete: done,
+      });
+    },
+    onLeave(el, done) {
+      gsap.to(el, {
+        opacity: 0,
+        height: 0,
+        delay: el.dataset.index * 0.15,
+        onComplete: done,
+      });
     },
   },
 };
